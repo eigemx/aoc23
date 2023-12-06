@@ -4,7 +4,6 @@
 #include <cctype>
 #include <cstddef>
 #include <iostream>
-#include <iterator>
 #include <map>
 #include <ostream>
 #include <string>
@@ -23,7 +22,6 @@ std::map<std::string, int> num_str_to_int{
     {"2", 2},   {"3", 3},     {"4", 4},     {"5", 5},    {"6", 6},
     {"7", 7},   {"8", 8},     {"9", 9}};
 // clang-format on
-
 
 // part I sum function
 [[nodiscard]] inline auto sum_numbers(std::string_view text) -> unsigned int;
