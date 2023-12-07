@@ -4,18 +4,13 @@
 
 using namespace std::literals::string_view_literals;
 
-constexpr std::string_view TEST_INPUT = R"(1abc2
-pqr3stu8vwx
-a1b2c3d4e5f
-treb7uchet)"sv;
+using HandlerFunc = unsigned int(std::string_view);
 
-constexpr std::string_view TEST_INPUT2 = R"(two1nine
-eightwothree
-abcone2threexyz
-xtwone3four
-4nineeightseven2
-zoneight234
-7pqrstsixteen)"sv;
+[[nodiscard]] auto sum_numbers(std::string_view text, HandlerFunc* func) -> unsigned int;
+[[nodiscard]] auto number_in_line_part_one(std::string_view text) -> unsigned int;
+[[nodiscard]] auto number_in_line_part_two(std::string_view line) -> unsigned int;
+[[nodiscard]] auto first_number_in_line(std::string_view line) -> std::pair<int, const char*>;
+[[nodiscard]] auto check_if(std::string_view num, std::string_view line) -> bool;
 
 constexpr std::string_view INPUT = R"(2xjzgsjzfhzhm1
 qhklfjd39rpjxhqtftwopfvrrj2eight

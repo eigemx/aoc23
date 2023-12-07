@@ -15,6 +15,5 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
-add_executable(day01 src/day01/day01.cpp)
-
-enable_testing()
+# day 01
+add_subdirectory(src/day01)

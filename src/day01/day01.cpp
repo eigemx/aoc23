@@ -8,15 +8,6 @@
 #include <string_view>
 #include <utility>
 
-using HandlerFunc = unsigned int(std::string_view);
-
-[[nodiscard]] inline auto sum_numbers(std::string_view text, HandlerFunc* func) -> unsigned int;
-[[nodiscard]] inline auto number_in_line_part_one(std::string_view text) -> unsigned int;
-[[nodiscard]] inline auto number_in_line_part_two(std::string_view line) -> unsigned int;
-[[nodiscard]] inline auto first_number_in_line(std::string_view line) -> std::pair<int, const char*>;
-[[nodiscard]] inline auto check_if(std::string_view num, std::string_view line) -> bool;
-
-
 auto sum_numbers(std::string_view text, HandlerFunc* func) -> unsigned int {
     std::size_t sum {0};
     const char* it = text.begin();
@@ -67,7 +58,6 @@ auto number_in_line_part_two(std::string_view line) -> unsigned int {
 
 auto first_number_in_line(std::string_view line) -> std::pair<int, const char*> {
     static char initials[] = {'o', 't', 'f', 's', 'e', 'n', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-
     auto line_end = line.end();
     auto first_occ = std::find_first_of(line.begin(), line_end, std::begin(initials), std::end(initials));
 
@@ -118,9 +108,4 @@ auto first_number_in_line(std::string_view line) -> std::pair<int, const char*> 
 auto check_if(std::string_view num, std::string_view line) -> bool {
     if (line.size() < num.size()) return false;
     return line.substr(0, num.size()) == num;
-}
-
-int main() {
-    std::cout << "Part I sum = " << sum_numbers(INPUT, number_in_line_part_one) << std::endl;
-    std::cout << "Part II sum = " << sum_numbers(INPUT, number_in_line_part_two) << std::endl;
 }
