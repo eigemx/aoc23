@@ -4,53 +4,20 @@
 #include <cctype>
 #include <cstddef>
 #include <iostream>
-#include <map>
-#include <ostream>
 #include <string>
 #include <string_view>
 #include <utility>
 
-// part I
-[[nodiscard]] inline auto sum_numbers(std::string_view text) -> unsigned int;
+using HandlerFunc = unsigned int(std::string_view);
 
-// part II
-[[nodiscard]] inline auto sum_numbers_part_two(std::string_view text) -> unsigned int;
-[[nodiscard]] inline auto number_in_line(std::string_view line) -> unsigned int;
+[[nodiscard]] inline auto sum_numbers(std::string_view text, HandlerFunc* func) -> unsigned int;
+[[nodiscard]] inline auto number_in_line_part_one(std::string_view text) -> unsigned int;
+[[nodiscard]] inline auto number_in_line_part_two(std::string_view line) -> unsigned int;
 [[nodiscard]] inline auto first_number_in_line(std::string_view line) -> std::pair<int, const char*>;
 [[nodiscard]] inline auto check_if(std::string_view num, std::string_view line) -> bool;
 
-auto sum_numbers(std::string_view text) -> unsigned int {
-    std::size_t sum {0};
-    const char* it = text.begin();
 
-    while (it != text.end()) {
-        std::size_t counter {0};
-        std::size_t first_idx {0}, second_idx {0};
-        const char *first = nullptr, *second = nullptr;
-
-        while (!std::isdigit(*it)) {
-            it++;
-            counter++;
-        }
-
-        first = it;
-        first_idx = counter;
-
-        while (*it != '\n' && it != text.end()) {
-            if (std::isdigit(*it)) {
-                second = it;
-                second_idx = counter;
-            }
-            it++;
-            counter++;
-        }
-        sum += ((*first - '0') * 10) + (*second - '0');
-    }
-
-    return sum;
-}
-
-auto sum_numbers_part_two(std::string_view text) -> unsigned int {
+auto sum_numbers(std::string_view text, HandlerFunc* func) -> unsigned int {
     std::size_t sum {0};
     const char* it = text.begin();
 
@@ -59,16 +26,28 @@ auto sum_numbers_part_two(std::string_view text) -> unsigned int {
         auto line = std::string_view(it, line_end);
 
         if (line_end == text.end()) {
-            sum += number_in_line(line);
+            sum += func(line);
             break;
         }
-        sum += number_in_line(line);
+        sum += func(line);
         it = line_end + 1;
     }
     return sum;
 }
 
-auto number_in_line(std::string_view line) -> unsigned int {
+auto number_in_line_part_one(std::string_view line) -> unsigned int {
+    auto first = std::find_if(line.begin(), line.end(), [](char ch) { return std::isdigit(ch); });
+    if (first == line.end()) {
+        std::cerr << "Couldn't find a number in " << line << std::endl;
+        return 0;
+    }
+
+    auto second = std::find_if(line.rbegin(), line.rend(), [](char ch) { return std::isdigit(ch); });
+
+    return (((*first) - '0') * 10) + ((*second) - '0');
+}
+
+auto number_in_line_part_two(std::string_view line) -> unsigned int {
     auto [first_num, itr] = first_number_in_line(line);
 
     if (itr == line.end()) {
@@ -142,6 +121,6 @@ auto check_if(std::string_view num, std::string_view line) -> bool {
 }
 
 int main() {
-    std::cout << "Part I sum = " << sum_numbers(INPUT) << std::endl;
-    std::cout << "Part II sum = " << sum_numbers_part_two(INPUT) << std::endl;
+    std::cout << "Part I sum = " << sum_numbers(INPUT, number_in_line_part_one) << std::endl;
+    std::cout << "Part II sum = " << sum_numbers(INPUT, number_in_line_part_two) << std::endl;
 }
