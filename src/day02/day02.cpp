@@ -6,17 +6,15 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <iostream>
+#include <stdexcept>
+#include <utility>
 #include <vector>
 
-auto Game::is_valid() const noexcept -> bool {
-    return colors.red <= 12 && colors.green <= 13 && colors.blue <= 14;
-}
 
-auto Game::operator+(const Game& other) noexcept -> Game& {
-    this->colors.red += other.colors.red;
-    this->colors.green += other.colors.green;
-    this->colors.blue += other.colors.blue;
-    return *this;
+auto inline is_possible_config(unsigned int red, unsigned int green, unsigned int blue) noexcept -> bool {
+    bool color_count_check = (red <= 12) && (green <= 13) && (blue <= 14);
+    bool cubes_count_check = (red + green + red) <= (12 + 13 + 14);
+    return color_count_check && cubes_count_check;
 }
 
 auto parse_and_sum(std::string_view games) -> unsigned int {
@@ -27,62 +25,61 @@ auto parse_and_sum(std::string_view games) -> unsigned int {
     while (it != games.end()) {
         const char* line_end = std::find(it, games.end(), '\n');
         auto line = std::string_view(it, line_end);
-        auto game = parse_game(line);
+        auto [id, is_possible] = is_game_possible(line);
 
-        if (game.is_valid()) {
-            sum += game.id;
-        }
-
-        if (line_end == games.end()) {
-            break;
-        }
+        if (is_possible) sum += id;
+        if (line_end == games.end()) break;
 
         it = line_end + 1;
     }
     return sum;
 }
 
-auto parse_game(std::string_view line) -> Game {
-    Game game;
-    auto result = scn::scan(line, "Game {}:", game.id);
-
+auto is_game_possible(std::string_view line) -> std::pair<unsigned int, bool> {
+    unsigned int id;
+    auto result = scn::scan(line, "Game {}:", id);
     auto remaining_line = result.range_as_string_view();
-    game = game + parse_sets(remaining_line);
+    bool is_possible = are_sets_possible(remaining_line);
 
-    return game;
+    return std::make_pair(id, is_possible);
 }
 
-auto parse_sets(std::string_view sets_string) -> Game {
-    Game game {};
-
+auto are_sets_possible(std::string_view sets_string) -> bool {
     std::vector<std::string> sets;
     boost::split(sets, sets_string, boost::is_any_of(";"));
 
     for (const auto& set : sets) {
-        game = game + parse_set(set);
+        if (!is_set_possible(set)) {
+            return false;
+        }
     }
 
-    return game;
+    return true;
 }
 
-auto parse_set(const std::string& set_str) -> Game {
-    unsigned int red {}, green {}, blue {};
+auto is_set_possible(const std::string& set_str) -> bool {
     std::vector<std::string> colors;
-
     boost::split(colors, set_str, boost::is_any_of(","));
 
     for (const auto& color_description : colors) {
         std::string color;
-        unsigned int count {};
+        unsigned int count {}, r {}, g {}, b {};
         auto result = scn::scan(color_description, "{} {}", count, color);
 
         if (color == "red") {
-            red += count;
+            r += count;
         } else if (color == "green") {
-            green += count;
+            g += count;
+        } else if (color == "blue") {
+            b += count;
         } else {
-            blue += count;
+            throw std::runtime_error("parse_set() got an unknown color!");
+        }
+
+        if (!is_possible_config(r, g, b)) {
+            return false;
         }
     }
-    return Game {.id = 0, .colors {.red = red, .green = green, .blue = blue}};
+
+    return true;
 }

@@ -4,29 +4,10 @@
 
 using namespace std::literals::string_view_literals;
 
-struct Colors {
-    unsigned int red {}, green {}, blue {};
-};
-
-struct Game {
-    unsigned int id {};
-    Colors colors {};
-
-    auto is_valid() const noexcept -> bool;
-    [[nodiscard]] auto operator+(const Game&) noexcept -> Game&;
-};
-
 [[nodiscard]] auto parse_and_sum(std::string_view games) -> unsigned int;
-[[nodiscard]] auto parse_game(std::string_view line) -> Game;
-[[nodiscard]] auto parse_sets(std::string_view sets_string) -> Game;
-[[nodiscard]] auto parse_set(const std::string& set_str) -> Game;
-
-constexpr std::string_view TEST_INPUT = R"(Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
-Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
-Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
-Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
-Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
-)"sv;
+[[nodiscard]] auto is_game_possible(std::string_view line) -> std::pair<unsigned int, bool>;
+[[nodiscard]] auto are_sets_possible(std::string_view sets_string) -> bool;
+[[nodiscard]] auto is_set_possible(const std::string& set_str) -> bool;
 
 constexpr std::string_view INPUT =
     R"(Game 1: 3 green, 1 blue, 3 red; 3 blue, 1 green, 3 red; 2 red, 12 green, 7 blue; 1 red, 4 blue, 5 green; 7 green, 2 blue, 2 red
