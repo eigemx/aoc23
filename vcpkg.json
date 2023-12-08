@@ -5,6 +5,7 @@
     "dependencies": [
         "fmt",
         "gtest",
-        "scnlib"
+        "scnlib",
+        "boost-algorithm"
     ]
 }
