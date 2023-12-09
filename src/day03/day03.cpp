@@ -3,16 +3,18 @@
 #include <algorithm>
 #include <cassert>
 #include <cctype>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <numeric>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 
 auto inline is_period(char ch) { return ch == '.'; }
 auto inline is_symbol(char ch) { return !std::isdigit(ch) && !is_period(ch); }
-
+auto inline is_asterisk(char ch) { return ch == '*'; }
 
 Grid::Grid(std::string grid_text) {
     std::istringstream stream(grid_text);
@@ -33,13 +35,15 @@ Grid::Grid(std::string grid_text) {
 #endif
 }
 
-auto Grid::at(std::size_t i, std::size_t j) const -> char { return _grid[i][j]; }
+auto Grid::at(std::size_t i, std::size_t j) const noexcept -> char { return _grid[i][j]; }
 
-auto Grid::can_go_left(std::size_t j) const -> bool { return j > 0; }
-auto Grid::can_go_right(std::size_t j) const -> bool { return j < _grid.size() - 1; }
+auto Grid::can_go_left(std::size_t j) const noexcept -> bool { return j > 0; }
+
+auto Grid::can_go_right(std::size_t j) const noexcept -> bool { return j < _grid.size() - 1; }
 
 
 auto Grid::sum_non_symbols() -> std::size_t {
+    _numbers.clear();
     const auto gsize = _grid.size();
 
     for (std::size_t i = 0; i < gsize; ++i) {
@@ -53,10 +57,30 @@ auto Grid::sum_non_symbols() -> std::size_t {
     return std::accumulate(_numbers.begin(), _numbers.end(), 0);
 }
 
-auto Grid::get_surrounding_numbers(std::size_t i, std::size_t j) const noexcept -> std::vector<std::size_t> {
+auto Grid::sum_gear_ratios() -> std::size_t {
+    _numbers.clear();
+    const auto gsize = _grid.size();
+
+    for (std::size_t i = 0; i < gsize; ++i) {
+        for (std::size_t j = 0; j < gsize; ++j) {
+            if (is_symbol(at(i, j)) && is_asterisk(at(i, j))) {
+                auto numbers = get_surrounding_numbers(i, j);
+                if (numbers.size() > 1) {
+                    auto gear_ratio =
+                        std::accumulate(numbers.begin(), numbers.end(), 1, std::multiplies<std::size_t>());
+                    _numbers.push_back(gear_ratio);
+                }
+            }
+        }
+    }
+    return std::accumulate(_numbers.begin(), _numbers.end(), 0);
+}
+
+auto Grid::get_surrounding_numbers(std::size_t i, std::size_t j) const noexcept
+    -> std::unordered_set<std::size_t> {
     // we need to check in four directions (north, south, east, west) (if possible)
     // we also need to check diagonal neigbors to the symbol
-    std::vector<std::size_t> numbers;
+    std::unordered_set<std::size_t> numbers;
 
     auto north = search_at(i - 1, j);
     auto east = search_at(i, j + 1);
@@ -74,7 +98,7 @@ auto Grid::get_surrounding_numbers(std::size_t i, std::size_t j) const noexcept 
     std::for_each(
         optional_values.begin(), optional_values.end(), [&numbers](const std::optional<std::size_t> opt) {
             if (opt.has_value()) {
-                numbers.push_back(opt.value());
+                numbers.insert(opt.value());
             };
         });
 

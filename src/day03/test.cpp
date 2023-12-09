@@ -17,3 +17,8 @@ TEST(PartOneTest, BasicAssertions) {
     Grid grid(TEST_INPUT);
     EXPECT_EQ(grid.sum_non_symbols(), 4361);
 }
+
+TEST(PartTwoTest, BasicAssertions) {
+    Grid grid(TEST_INPUT);
+    EXPECT_EQ(grid.sum_gear_ratios(), 467835);
+}
