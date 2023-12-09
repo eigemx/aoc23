@@ -1,13 +1,33 @@
 #pragma once
 
+#include <cstddef>
 #include <string_view>
+#include <vector>
 
 using namespace std::literals::string_view_literals;
 
-[[nodiscard]] auto parse_and_sum(std::string_view games) -> unsigned int;
-[[nodiscard]] auto is_game_possible(std::string_view line) -> std::pair<unsigned int, bool>;
-[[nodiscard]] auto are_sets_possible(std::string_view sets_string) -> bool;
-[[nodiscard]] auto is_set_possible(const std::string& set_str) -> bool;
+struct Colors {
+    std::size_t red {}, green {}, blue {};
+};
+
+struct GameSet {
+    Colors colors;
+};
+
+struct Game {
+    std::size_t id {};
+    std::vector<GameSet> sets;
+};
+
+[[nodiscard]] auto valid_games_count(const std::vector<Game> games) -> std::size_t;
+[[nodiscard]] auto parse_games(std::string_view text) -> std::vector<Game>;
+[[nodiscard]] auto parse_game(std::string_view line) -> Game;
+[[nodiscard]] auto parse_sets(std::string_view sets_string) -> std::vector<GameSet>;
+[[nodiscard]] auto parse_set(const std::string& set_str) -> GameSet;
+[[nodiscard]] auto is_possible_config(unsigned int r, unsigned int g, unsigned int b) noexcept -> bool;
+[[nodiscard]] auto power_set_cubes(const std::vector<Game>& games) -> std::size_t;
+[[nodiscard]] auto max_colors_in_game(const Game& game) -> Colors;
+
 
 constexpr std::string_view INPUT =
     R"(Game 1: 3 green, 1 blue, 3 red; 3 blue, 1 green, 3 red; 2 red, 12 green, 7 blue; 1 red, 4 blue, 5 green; 7 green, 2 blue, 2 red

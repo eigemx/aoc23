@@ -2,62 +2,76 @@
 
 #include <scn/scn.h>
 
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <ios>
 #include <iostream>
+#include <iterator>
+#include <numeric>
+#include <sstream>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 
-auto inline is_possible_config(unsigned int red, unsigned int green, unsigned int blue) noexcept -> bool {
-    bool color_count_check = (red <= 12) && (green <= 13) && (blue <= 14);
-    bool cubes_count_check = (red + green + red) <= (12 + 13 + 14);
-    return color_count_check && cubes_count_check;
-}
+auto valid_games_count(const std::vector<Game> games) -> std::size_t {
+    std::vector<Game> valid_games;
+    std::copy_if(games.begin(), games.end(), std::back_insert_iterator(valid_games), [](const Game& game) {
+        for (const auto& set : game.sets) {
+            if (!is_possible_config(set.colors.red, set.colors.green, set.colors.blue)) {
+                return false;
+            }
+        }
+        return true;
+    });
 
-auto parse_and_sum(std::string_view games) -> unsigned int {
-    // parses a list of games entries and returns the sum of valid games.
-    std::size_t sum {0};
-    const char* it = games.begin();
+    std::size_t sum {};
+    std::for_each(valid_games.begin(), valid_games.end(), [&sum](const Game& game) { sum += game.id; });
 
-    while (it != games.end()) {
-        const char* line_end = std::find(it, games.end(), '\n');
-        auto line = std::string_view(it, line_end);
-        auto [id, is_possible] = is_game_possible(line);
-
-        if (is_possible) sum += id;
-        if (line_end == games.end()) break;
-
-        it = line_end + 1;
-    }
     return sum;
 }
 
-auto is_game_possible(std::string_view line) -> std::pair<unsigned int, bool> {
+auto parse_games(std::string_view text) -> std::vector<Game> {
+    std::vector<Game> games;
+    std::istringstream stream(std::string(text), std::ios_base::in);
+    std::string line;
+
+    while (std::getline(stream, line)) {
+        games.emplace_back(parse_game(line));
+    }
+
+    return games;
+}
+
+auto parse_game(std::string_view line) -> Game {
     unsigned int id;
     auto result = scn::scan(line, "Game {}:", id);
     auto remaining_line = result.range_as_string_view();
-    bool is_possible = are_sets_possible(remaining_line);
+    auto sets = parse_sets(remaining_line);
 
-    return std::make_pair(id, is_possible);
+    return Game {.id = id, .sets = sets};
 }
 
-auto are_sets_possible(std::string_view sets_string) -> bool {
-    std::vector<std::string> sets;
-    boost::split(sets, sets_string, boost::is_any_of(";"));
+auto parse_sets(std::string_view sets_string) -> std::vector<GameSet> {
+    std::vector<std::string> sets_string_vec;
+    std::vector<GameSet> parsed_sets;
+    boost::split(sets_string_vec, sets_string, boost::is_any_of(";"));
 
-    for (const auto& set : sets) {
-        if (!is_set_possible(set)) {
-            return false;
-        }
-    }
+    std::for_each(
+        sets_string_vec.begin(), sets_string_vec.end(), [&parsed_sets](const std::string& set_string) {
+            parsed_sets.push_back(parse_set(set_string));
+        });
 
-    return true;
+    return parsed_sets;
 }
 
-auto is_set_possible(const std::string& set_str) -> bool {
+
+auto parse_set(const std::string& set_str) -> GameSet {
+    GameSet set;
     std::vector<std::string> colors;
     boost::split(colors, set_str, boost::is_any_of(","));
 
@@ -67,19 +81,51 @@ auto is_set_possible(const std::string& set_str) -> bool {
         auto result = scn::scan(color_description, "{} {}", count, color);
 
         if (color == "red") {
-            r += count;
+            set.colors.red += count;
         } else if (color == "green") {
-            g += count;
+            set.colors.green += count;
         } else if (color == "blue") {
-            b += count;
+            set.colors.blue += count;
         } else {
             throw std::runtime_error("parse_set() got an unknown color!");
         }
+    }
+    return set;
+}
 
-        if (!is_possible_config(r, g, b)) {
-            return false;
-        }
+auto is_possible_config(unsigned int red, unsigned int green, unsigned int blue) noexcept -> bool {
+    // checks if the given configuration constitutes a valid draw from the given configuration
+    bool color_count_check = (red <= 12) && (green <= 13) && (blue <= 14);
+    bool cubes_count_check = (red + green + red) <= (12 + 13 + 14);
+    return color_count_check && cubes_count_check;
+}
+
+auto power_set_cubes(const std::vector<Game>& games) -> std::size_t {
+    std::size_t sum {};
+    for (const auto& game : games) {
+        Colors max_colors = max_colors_in_game(game);
+        sum += max_colors.red * max_colors.green * max_colors.blue;
     }
 
-    return true;
+    return sum;
+}
+
+auto max_colors_in_game(const Game& game) -> Colors {
+    auto max_red =
+        std::max_element(game.sets.begin(), game.sets.end(), [](const GameSet& a, const GameSet& b) {
+            return a.colors.red < b.colors.red;
+        });
+
+    auto max_green =
+        std::max_element(game.sets.begin(), game.sets.end(), [](const GameSet& a, const GameSet& b) {
+            return a.colors.green < b.colors.green;
+        });
+
+    auto max_blue =
+        std::max_element(game.sets.begin(), game.sets.end(), [](const GameSet& a, const GameSet& b) {
+            return a.colors.blue < b.colors.blue;
+        });
+
+    return Colors {
+        .red = max_red->colors.red, .green = max_green->colors.green, .blue = max_blue->colors.blue};
 }
