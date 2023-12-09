@@ -22,3 +22,6 @@ add_subdirectory(src/day01)
 
 # day 02
 add_subdirectory(src/day02)
+
+# day 03
+add_subdirectory(src/day03)
