@@ -11,6 +11,4 @@ find_package(GTest CONFIG REQUIRED)
 add_executable(day02-test test.cpp day02.cpp)
 target_link_libraries(day02-test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main day02)
 
-enable_testing()
-include(GoogleTest)
 gtest_discover_tests(day02-test)

@@ -17,6 +17,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
+enable_testing()
+include(GoogleTest)
+
 # day 01
 add_subdirectory(src/day01)
 
@@ -25,3 +28,6 @@ add_subdirectory(src/day02)
 
 # day 03
 add_subdirectory(src/day03)
+
+# day 04
+add_subdirectory(src/day04)
