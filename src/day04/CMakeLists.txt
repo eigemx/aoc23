@@ -2,7 +2,7 @@ find_package(scn CONFIG REQUIRED)
 find_package(Boost REQUIRED)
 
 add_library(day04 day04.cpp)
-target_link_libraries(day04 PRIVATE scn::scn Boost::boost fmt::fmt-header-only)
+target_link_libraries(day04 PRIVATE scn::scn Boost::boost)
 
 
 add_executable(day04-main main.cpp)

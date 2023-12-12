@@ -1,7 +1,5 @@
 #include "day04.h"
 
-#include <fmt/core.h>
-#include <fmt/ranges.h>
 #include <scn/scn.h>
 
 #include <algorithm>
